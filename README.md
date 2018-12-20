@@ -49,7 +49,17 @@ to create a `swift-shared-libs.zip` file that contains the libraries for the lay
 make package_layer
 ```
 
-### Step 4: Setup the lambda on AWS
-[!Add a new lambda function](./resources/create-lambda-step-1.png)
+### Step 4: Setup the layer on AWS
 
-### Step 5: Run the lambda
+### Step 5: Setup the lambda on AWS
+First create a new lambda function in the AWS Management console and select "Use custom runtime in function code or layer":
+
+![Create a new lambda function](./resources/create-lambda-step-1.png)
+
+Next, select the `lambda.zip` file as the function package to upload and set the handler to "ExampleHandler.squareNumber".
+
+![Upload the function package and set the handler](./resources/create-lambda-step-2.png)
+
+Finally, click the "Save" button in the upper right corner in order to save these changes.
+
+### Step 6: Run the lambda
