@@ -1,6 +1,6 @@
 import Foundation
 
-func log(_ object: Any, flush: Bool = false) {
+public func log(_ object: Any, flush: Bool = false) {
     fputs("\(object)\n", stderr)
     if flush {
         fflush(stderr)
@@ -13,7 +13,7 @@ public class Runtime {
     var counter = 0
     let urlSession: URLSession
     let awsLambdaRuntimeAPI: String
-    let handler: String
+    let lambdaName: String
     var lambdas: [String: (JSONDictionary) -> JSONDictionary]
     
     public init() throws {
@@ -25,9 +25,13 @@ public class Runtime {
            let handler = environment["_HANDLER"] else {
               throw RuntimeError.missingEnvironmentVariables
         }
-        
+
+        guard let periodIndex = handler.index(of: ".") else {
+            throw RuntimeError.invalidHandlerName
+        }
+
         self.awsLambdaRuntimeAPI = awsLambdaRuntimeAPI
-        self.handler = handler
+        self.lambdaName = String(handler[handler.index(after: periodIndex)...])
     }
     
     func getNextInvocation() throws -> (input: JSONDictionary, requestId: String) {
@@ -75,7 +79,10 @@ public class Runtime {
             counter += 1
             log("Invocation-Counter: \(counter)")
 
-            let lambda = lambdas["lambda"]!
+            guard let lambda = lambdas[lambdaName] else {
+                throw RuntimeError.unknownLambdaHandler
+            }
+
             let output = lambda(input)
             try postInvocationResponse(for: requestId, response: output)
         }

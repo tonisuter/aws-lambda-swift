@@ -1,10 +1,16 @@
 import AWSLambdaSwift
 
-func lambda(input: JSONDictionary) -> JSONDictionary {
-    print(input)
+func lambda1(input: JSONDictionary) -> JSONDictionary {
+    log(input)
     return ["hello": "world", "number": 42, "strings": ["one", "two", "three"]]
 }
 
+func lambda2(input: JSONDictionary) -> JSONDictionary {
+    log(input)
+    return ["result": "success"]
+}
+
 let runtime = try Runtime()
-runtime.registerLambda("lambda", handler: lambda)
+runtime.registerLambda("lambda1", handler: lambda1)
+runtime.registerLambda("lambda2", handler: lambda2)
 try runtime.start()
