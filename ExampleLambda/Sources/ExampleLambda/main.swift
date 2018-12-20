@@ -1,16 +1,14 @@
 import AWSLambdaSwift
 
-func lambda1(input: JSONDictionary) -> JSONDictionary {
-    log(input)
-    return ["hello": "world", "number": 42, "strings": ["one", "two", "three"]]
-}
+func suareNumber(input: JSONDictionary) -> JSONDictionary {
+    guard let number = input["number"] as? Double else {
+        return ["success": false]
+    }
 
-func lambda2(input: JSONDictionary) -> JSONDictionary {
-    log(input)
-    return ["result": "success"]
+    let squaredNumber = number * number
+    return ["success": true, "result": squaredNumber]
 }
 
 let runtime = try Runtime()
-runtime.registerLambda("lambda1", handler: lambda1)
-runtime.registerLambda("lambda2", handler: lambda2)
+runtime.registerLambda("squareNumber", handler: suareNumber)
 try runtime.start()
