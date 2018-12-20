@@ -50,6 +50,11 @@ make package_layer
 ```
 
 ### Step 4: Setup the layer on AWS
+Create a new lambda layer in the AWS Management console using the `swift-shared-libs.zip` file:
+
+![Create a new layer](./resources/create-layer-step-1.png)
+
+This might take a few minutes. Once the upload is done, the layer's ARN (Amazon Resource Name) is shown on the page. In the next step we will use this ARN to reference the layer from the lambda.
 
 ### Step 5: Setup the lambda on AWS
 First create a new lambda function in the AWS Management console and select "Use custom runtime in function code or layer":
