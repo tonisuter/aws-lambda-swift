@@ -72,3 +72,11 @@ Click on the "Layers" button and then on the "Add a layer" button. Reference the
 Finally, click the "Save" button in the upper right corner in order to save these changes.
 
 ### Step 6: Test the lambda
+Now the lambda function is ready for testing. Click on "Select a test event" and then on "Configure test events". Configure a new test event like this:
+
+![Create a new test event](./resources/lambda-testing-step-1.png)
+
+Then call the lambda function with the new test event by clicking on the "Test" button. You should
+see the following result:
+
+![Successful lambda execution result](./resources/lambda-testing-step-2.png) 
