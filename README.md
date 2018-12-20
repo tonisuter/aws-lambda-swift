@@ -61,7 +61,7 @@ First create a new lambda function in the AWS Management console and select "Use
 
 ![Create a new lambda function](./resources/create-lambda-step-1.png)
 
-Next, select the `lambda.zip` file as the function package to upload and set the handler to "ExampleHandler.squareNumber". The first part of the handler should be the same as the name of the executable.
+Next, select the `lambda.zip` file as the function package to upload and set the handler to "ExampleLambda.squareNumber". The first part of the handler should be the same as the name of the executable.
 The second part of the handler should be the same as the name that has been used to register the lambda handler in the runtime (see Step 1):
 
 ![Upload the function package and set the handler](./resources/create-lambda-step-2.png)
