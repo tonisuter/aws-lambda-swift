@@ -50,5 +50,6 @@ make package_layer
 ```
 
 ### Step 4: Setup the lambda on AWS
+[!Add a new lambda function](./resources/create-lambda-step-1.png)
 
 ### Step 5: Run the lambda
