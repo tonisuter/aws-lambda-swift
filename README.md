@@ -65,6 +65,10 @@ Next, select the `lambda.zip` file as the function package to upload and set the
 
 ![Upload the function package and set the handler](./resources/create-lambda-step-2.png)
 
+Click on the "Layers" button and then on the "Add a layer" button. Reference the layer we have created in Step 4 using its ARN and click on the "Add" button:
+
+![Reference the layer from the lambda](./resources/create-lambda-step-3.png)
+
 Finally, click the "Save" button in the upper right corner in order to save these changes.
 
-### Step 6: Run the lambda
+### Step 6: Test the lambda
