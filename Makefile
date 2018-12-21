@@ -18,7 +18,7 @@ build_lambda:
 			swift build --build-path ./.build_linux
 
 package_lambda: clean_lambda build_lambda
-	zip -r -j $(LAMBDA_ZIP) bootstrap $(PROJECT_PATH)/.build_linux/debug/$(EXECUTABLE)
+	zip -r -j $(LAMBDA_ZIP) $(PROJECT_PATH)/.build_linux/debug/$(EXECUTABLE)
 
 clean_layer:
 	rm $(LAYER_ZIP) || true
