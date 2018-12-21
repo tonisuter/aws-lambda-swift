@@ -11,7 +11,7 @@ In the main.swift file of the `ExampleLambda` executable we import the AWSLambda
 ```swift
 import AWSLambdaSwift
 
-func suareNumber(input: JSONDictionary) -> JSONDictionary {
+func squareNumber(input: JSONDictionary) -> JSONDictionary {
     guard let number = input["number"] as? Double else {
         return ["success": false]
     }
@@ -21,7 +21,7 @@ func suareNumber(input: JSONDictionary) -> JSONDictionary {
 }
 
 let runtime = try Runtime()
-runtime.registerLambda("squareNumber", handler: suareNumber)
+runtime.registerLambda("squareNumber", handler: squareNumber)
 try runtime.start()
 ```
 
@@ -31,23 +31,23 @@ return a `JSONDictionary`. This type is just a typealias for the type `Dictionar
 ### Step 2: Build the lambda
 AWS Lambdas run on Amazon Linux (see [https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html)).
 This means that we can't just run `swift build` on macOS because that will produce a macOS executable which doesn't run on Linux. Instead, I have used Docker to build the `ExampleLambda` package.
-Execute the following command to build the `ExampleLambda` package and bundle it in the `lambda.zip` file together with the `bootstrap` file.
+Execute the following command to build the `ExampleLambda` package and bundle the executable in the `lambda.zip` file:
 
 ```bash
 make package_lambda
 ```
 
-The `bootstrap` file is a simple shell script that launches the executable.
-
 ### Step 3: Build the layer
 We now have a Linux executable. However, this executable dynamically links to the Swift standard library and a bunch of other shared libraries (Foundation, Grand Central Dispatch, Glibc, etc). Those
 libraries are not available on Amazon Linux. Thus, I created an [AWS Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) which contains all of those shared libraries.
 The AWS Lambda can then reference this layer. This makes sure that we only have to upload the libraries once instead of every time we want to update the lambda. Run the following command
-to create a `swift-lambda-runtime.zip` file that contains the libraries for the layer:
+to create a `swift-lambda-runtime.zip` file that contains the `bootstrap` file and the libraries for the layer:
 
 ```bash
 make package_layer
 ```
+
+The `bootstrap` file is a simple shell script that launches the executable.
 
 ### Step 4: Setup the layer on AWS
 Create a new lambda layer in the AWS Management console using the `swift-lambda-runtime.zip` file:
