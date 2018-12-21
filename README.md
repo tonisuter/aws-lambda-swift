@@ -43,14 +43,14 @@ The `bootstrap` file is a simple shell script that launches the executable.
 We now have a Linux executable. However, this executable dynamically links to the Swift standard library and a bunch of other shared libraries (Foundation, Grand Central Dispatch, Glibc, etc). Those
 libraries are not available on Amazon Linux. Thus, I created an [AWS Lambda Layer](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html) which contains all of those shared libraries.
 The AWS Lambda can then reference this layer. This makes sure that we only have to upload the libraries once instead of every time we want to update the lambda. Run the following command
-to create a `swift-shared-libs.zip` file that contains the libraries for the layer:
+to create a `swift-lambda-runtime.zip` file that contains the libraries for the layer:
 
 ```bash
 make package_layer
 ```
 
 ### Step 4: Setup the layer on AWS
-Create a new lambda layer in the AWS Management console using the `swift-shared-libs.zip` file:
+Create a new lambda layer in the AWS Management console using the `swift-lambda-runtime.zip` file:
 
 ![Create a new layer](./resources/create-layer-step-1.png)
 

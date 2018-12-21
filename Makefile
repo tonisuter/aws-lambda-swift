@@ -2,8 +2,8 @@ EXECUTABLE=ExampleLambda
 PROJECT_PATH=ExampleLambda
 LAMBDA_BUNDLE_NAME=lambda
 LAMBDA_ZIP=$(LAMBDA_BUNDLE_NAME).zip
-LAYER_BUNDLE_NAME=swift-shared-libs
-LAYER_ZIP=$(LAYER_BUNDLE_NAME).zip
+SHARED_LIBS_FOLDER=swift-shared-libs
+LAYER_ZIP=swift-lambda-runtime.zip
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
@@ -22,22 +22,22 @@ package_lambda: clean_lambda build_lambda
 
 clean_layer:
 	rm $(LAYER_ZIP) || true
-	rm -r $(LAYER_BUNDLE_NAME) || true
+	rm -r $(SHARED_LIBS_FOLDER) || true
 
 package_layer: clean_layer
-	mkdir -p $(LAYER_BUNDLE_NAME)/lib
+	mkdir -p $(SHARED_LIBS_FOLDER)/lib
 	docker run \
 			--rm \
 			--volume "$(shell pwd)/:/src" \
 			--workdir "/src" \
 			swift \
-			cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 $(LAYER_BUNDLE_NAME)
+			cp /lib/x86_64-linux-gnu/ld-linux-x86-64.so.2 $(SHARED_LIBS_FOLDER)
 	docker run \
 			--rm \
 			--volume "$(shell pwd)/:/src" \
 			--workdir "/src" \
 			swift \
-			cp -t $(LAYER_BUNDLE_NAME)/lib \
+			cp -t $(SHARED_LIBS_FOLDER)/lib \
 					/usr/lib/x86_64-linux-gnu/libasn1.so.8 \
 					/usr/lib/x86_64-linux-gnu/libatomic.so.1 \
 					/lib/x86_64-linux-gnu/libbsd.so.0 \
@@ -91,4 +91,4 @@ package_layer: clean_layer
 					/usr/lib/x86_64-linux-gnu/libwind.so.0 \
 					/usr/lib/x86_64-linux-gnu/libxml2.so.2 \
 					/lib/x86_64-linux-gnu/libz.so.1
-	zip -r $(LAYER_ZIP) $(LAYER_BUNDLE_NAME)
+	zip -r $(LAYER_ZIP) bootstrap $(SHARED_LIBS_FOLDER)
