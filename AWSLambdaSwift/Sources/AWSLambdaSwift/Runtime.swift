@@ -35,7 +35,7 @@ public class Runtime {
         self.lambdaName = String(handler[handler.index(after: periodIndex)...])
     }
     
-    func getNextInvocation() throws -> (input: JSONDictionary, requestId: String) {
+    func getNextInvocation() throws -> (input: JSONDictionary, requestId: String, invokedFunctionArn: String) {
         let getNextInvocationEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/next")!
         let (optData, optResponse, optError) = urlSession.synchronousDataTask(with: getNextInvocationEndpoint)
         
@@ -54,7 +54,8 @@ public class Runtime {
         
         let httpResponse = optResponse as! HTTPURLResponse
         let requestId = httpResponse.allHeaderFields["Lambda-Runtime-Aws-Request-Id"] as! String
-        return (input: input, requestId: requestId)
+        let invokedFunctionArn = httpResponse.allHeaderFields["Lambda-Runtime-Invoked-Function-Arn"] as! String
+        return (input: input, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
     }
     
     func postInvocationResponse(for requestId: String, response: JSONDictionary) throws {
@@ -70,7 +71,7 @@ public class Runtime {
         _ = urlSession.synchronousDataTask(with: urlRequest)
     }
 
-    func createContext(requestId: String) -> Context {
+    func createContext(requestId: String, invokedFunctionArn: String) -> Context {
         let environment = ProcessInfo.processInfo.environment
         let functionName = environment["AWS_LAMBDA_FUNCTION_NAME"] ?? ""
         let functionVersion = environment["AWS_LAMBDA_FUNCTION_VERSION"] ?? ""
@@ -80,7 +81,8 @@ public class Runtime {
                         functionVersion: functionVersion,
                         logGroupName: logGroupName,
                         logStreamName: logStreamName,
-                        requestId: requestId)
+                        awsRequestId: requestId,
+                        invokedFunctionArn: invokedFunctionArn)
     }
 
     public func registerLambda(_ name: String, handler: @escaping Handler) {
@@ -89,7 +91,7 @@ public class Runtime {
     
     public func start() throws {
         while true {
-            let (input, requestId) = try getNextInvocation()
+            let (input, requestId, invokedFunctionArn) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
@@ -97,7 +99,7 @@ public class Runtime {
                 throw RuntimeError.unknownLambdaHandler
             }
 
-            let context = createContext(requestId: requestId)
+            let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
             let output = lambda(input, context)
             try postInvocationResponse(for: requestId, response: output)
         }

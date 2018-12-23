@@ -3,5 +3,6 @@ public struct Context {
     var functionVersion: String
     var logGroupName: String
     var logStreamName: String
-    var requestId: String
+    var awsRequestId: String
+    var invokedFunctionArn: String
 }
