@@ -20,6 +20,12 @@ build_lambda:
 package_lambda: clean_lambda build_lambda
 	zip -r -j $(LAMBDA_ZIP) $(PROJECT_PATH)/.build_linux/debug/$(EXECUTABLE)
 
+deploy_lambda: package_lambda
+	aws lambda update-function-code --function-name SquareNumber --zip-file fileb://lambda.zip
+
+invoke_lambda:
+	aws lambda invoke --function-name SquareNumber --payload '{"number":9}' response.txt && cat response.txt && echo "" && (rm response.txt || true)
+
 clean_layer:
 	rm $(LAYER_ZIP) || true
 	rm -r $(SHARED_LIBS_FOLDER) || true
