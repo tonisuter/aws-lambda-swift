@@ -8,13 +8,14 @@ public func log(_ object: Any, flush: Bool = false) {
 }
 
 public typealias JSONDictionary = [String: Any]
+public typealias Handler = (JSONDictionary, Context) -> JSONDictionary
 
 public class Runtime {
     var counter = 0
     let urlSession: URLSession
     let awsLambdaRuntimeAPI: String
     let lambdaName: String
-    var lambdas: [String: (JSONDictionary) -> JSONDictionary]
+    var lambdas: [String: Handler]
     
     public init() throws {
         self.urlSession = URLSession.shared
@@ -69,7 +70,20 @@ public class Runtime {
         _ = urlSession.synchronousDataTask(with: urlRequest)
     }
 
-    public func registerLambda(_ name: String, handler: @escaping (JSONDictionary) -> JSONDictionary) {
+    func createContext(requestId: String) -> Context {
+        let environment = ProcessInfo.processInfo.environment
+        let functionName = environment["AWS_LAMBDA_FUNCTION_NAME"] ?? ""
+        let functionVersion = environment["AWS_LAMBDA_FUNCTION_VERSION"] ?? ""
+        let logGroupName = environment["AWS_LAMBDA_LOG_GROUP_NAME"] ?? ""
+        let logStreamName = environment["AWS_LAMBDA_LOG_STREAM_NAME"] ?? ""
+        return Context(functionName: functionName,
+                        functionVersion: functionVersion,
+                        logGroupName: logGroupName,
+                        logStreamName: logStreamName,
+                        requestId: requestId)
+    }
+
+    public func registerLambda(_ name: String, handler: @escaping Handler) {
         lambdas[name] = handler
     }
     
@@ -83,7 +97,8 @@ public class Runtime {
                 throw RuntimeError.unknownLambdaHandler
             }
 
-            let output = lambda(input)
+            let context = createContext(requestId: requestId)
+            let output = lambda(input, context)
             try postInvocationResponse(for: requestId, response: output)
         }
     }

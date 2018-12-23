@@ -1,9 +1,11 @@
 import AWSLambdaSwift
 
-func suareNumber(input: JSONDictionary) -> JSONDictionary {
+func suareNumber(input: JSONDictionary, context: Context) -> JSONDictionary {
     guard let number = input["number"] as? Double else {
         return ["success": false]
     }
+
+    log(context)
 
     let squaredNumber = number * number
     return ["success": true, "result": squaredNumber]
