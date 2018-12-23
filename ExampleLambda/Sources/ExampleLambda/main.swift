@@ -1,7 +1,7 @@
 import AWSLambdaSwift
 import Foundation
 
-func suareNumber(input: JSONDictionary, context: Context) -> JSONDictionary {
+func squareNumber(input: JSONDictionary, context: Context) -> JSONDictionary {
     guard let number = input["number"] as? Double else {
         return ["success": false]
     }
@@ -14,5 +14,5 @@ func suareNumber(input: JSONDictionary, context: Context) -> JSONDictionary {
 }
 
 let runtime = try Runtime()
-runtime.registerLambda("squareNumber", handler: suareNumber)
+runtime.registerLambda("squareNumber", handler: squareNumber)
 try runtime.start()
