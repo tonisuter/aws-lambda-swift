@@ -8,14 +8,13 @@ public func log(_ object: Any, flush: Bool = false) {
 }
 
 public typealias JSONDictionary = [String: Any]
-public typealias Handler = (JSONDictionary, Context) -> JSONDictionary
 
 public class Runtime {
     var counter = 0
     let urlSession: URLSession
     let awsLambdaRuntimeAPI: String
     let lambdaName: String
-    var lambdas: [String: Handler]
+    var lambdas: [String: HandlerProtocol]
     
     public init() throws {
         self.urlSession = URLSession.shared
@@ -35,7 +34,7 @@ public class Runtime {
         self.lambdaName = String(handler[handler.index(after: periodIndex)...])
     }
     
-    func getNextInvocation() throws -> (input: JSONDictionary, requestId: String, invokedFunctionArn: String) {
+    func getNextInvocation() throws -> (inputData: Data, requestId: String, invokedFunctionArn: String) {
         let getNextInvocationEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/next")!
         let (optData, optResponse, optError) = urlSession.synchronousDataTask(with: getNextInvocationEndpoint)
         
@@ -43,31 +42,21 @@ public class Runtime {
             throw RuntimeError.endpointError(optError!.localizedDescription)
         }
         
-        guard let data = optData else {
+        guard let inputData = optData else {
             throw RuntimeError.missingData
-        }
-        
-        guard let jsonObject = try? JSONSerialization.jsonObject(with: data),
-              let input = jsonObject as? JSONDictionary else {
-            throw RuntimeError.invalidData
         }
         
         let httpResponse = optResponse as! HTTPURLResponse
         let requestId = httpResponse.allHeaderFields["Lambda-Runtime-Aws-Request-Id"] as! String
         let invokedFunctionArn = httpResponse.allHeaderFields["Lambda-Runtime-Invoked-Function-Arn"] as! String
-        return (input: input, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
+        return (inputData: inputData, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
     }
     
-    func postInvocationResponse(for requestId: String, response: JSONDictionary) throws {
+    func postInvocationResponse(for requestId: String, httpBody: Data) {
         let postInvocationResponseEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/\(requestId)/response")!
-        guard let httpBody = try? JSONSerialization.data(withJSONObject: response) else {
-            throw RuntimeError.invalidData
-        }
-        
         var urlRequest = URLRequest(url: postInvocationResponseEndpoint)
         urlRequest.httpMethod = "POST"
         urlRequest.httpBody = httpBody
-        
         _ = urlSession.synchronousDataTask(with: urlRequest)
     }
 
@@ -85,13 +74,19 @@ public class Runtime {
                         invokedFunctionArn: invokedFunctionArn)
     }
 
-    public func registerLambda(_ name: String, handler: @escaping Handler) {
+    public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) -> JSONDictionary) {
+        let handler = JSONSerializationHandler(handlerFunction: handlerFunction)
+        lambdas[name] = handler
+    }
+
+    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) -> Output) {
+        let handler = CodableHandler(handlerFunction: handlerFunction)
         lambdas[name] = handler
     }
     
     public func start() throws {
         while true {
-            let (input, requestId, invokedFunctionArn) = try getNextInvocation()
+            let (inputData, requestId, invokedFunctionArn) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
@@ -100,8 +95,8 @@ public class Runtime {
             }
 
             let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
-            let output = lambda(input, context)
-            try postInvocationResponse(for: requestId, response: output)
+            let outputData = try lambda.apply(inputData: inputData, context: context)
+            postInvocationResponse(for: requestId, httpBody: outputData)
         }
     }
 }
