@@ -38,7 +38,7 @@ public class Runtime {
         self.handlerName = String(handler[handler.index(after: periodIndex)...])
     }
     
-    func getNextInvocation() throws -> (inputData: Data, requestId: String, invokedFunctionArn: String) {
+    func getNextInvocation() throws -> (eventData: Data, requestId: String, invokedFunctionArn: String) {
         let getNextInvocationEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/next")!
         let (optData, optResponse, optError) = urlSession.synchronousDataTask(with: getNextInvocationEndpoint)
         
@@ -46,14 +46,14 @@ public class Runtime {
             throw RuntimeError.endpointError(optError!.localizedDescription)
         }
         
-        guard let inputData = optData else {
+        guard let eventData = optData else {
             throw RuntimeError.missingData
         }
         
         let httpResponse = optResponse as! HTTPURLResponse
         let requestId = httpResponse.allHeaderFields["Lambda-Runtime-Aws-Request-Id"] as! String
         let invokedFunctionArn = httpResponse.allHeaderFields["Lambda-Runtime-Invoked-Function-Arn"] as! String
-        return (inputData: inputData, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
+        return (eventData: eventData, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
     }
     
     func postInvocationResponse(for requestId: String, httpBody: Data) {
@@ -65,7 +65,8 @@ public class Runtime {
     }
 
     func postInvocationError(for requestId: String, error: Error) {
-        let invocationError = InvocationError(errorMessage: String(describing: error))
+        let errorMessage = String(describing: error)
+        let invocationError = InvocationError(errorMessage: errorMessage)
         let jsonEncoder = JSONEncoder()
         let httpBody = try! jsonEncoder.encode(invocationError)
 
@@ -95,14 +96,14 @@ public class Runtime {
         handlers[name] = handler
     }
 
-    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) throws -> Output) {
+    public func registerLambda<Event: Decodable, Result: Encodable>(_ name: String, handlerFunction: @escaping (Event, Context) throws -> Result) {
         let handler = CodableHandler(handlerFunction: handlerFunction)
         handlers[name] = handler
     }
     
     public func start() throws {
         while true {
-            let (inputData, requestId, invokedFunctionArn) = try getNextInvocation()
+            let (eventData, requestId, invokedFunctionArn) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
@@ -113,8 +114,8 @@ public class Runtime {
             let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
 
             do {
-                let outputData = try handler.apply(inputData: inputData, context: context)
-                postInvocationResponse(for: requestId, httpBody: outputData)
+                let resultData = try handler.apply(eventData: eventData, context: context)
+                postInvocationResponse(for: requestId, httpBody: resultData)
             } catch {
                 postInvocationError(for: requestId, error: error)
             }

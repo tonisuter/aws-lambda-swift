@@ -1,29 +1,16 @@
 import AWSLambdaSwift
-import Foundation
 
-/*func squareNumber(input: JSONDictionary, context: Context) -> JSONDictionary {
-    guard let number = input["number"] as? Double else {
-        return ["success": false]
-    }
-
-    log(context)
-    log(ProcessInfo.processInfo.environment)
-
-    let squaredNumber = number * number
-    return ["success": true, "result": squaredNumber]
-}*/
-
-struct Input: Codable {
+struct Event: Codable {
     let number: Double
 }
 
-struct Output: Codable {
+struct Result: Codable {
     let result: Double
 }
 
-func squareNumber(input: Input, context: Context) -> Output {
-    let squaredNumber = input.number * input.number
-    return Output(result: squaredNumber)
+func squareNumber(event: Event, context: Context) -> Result {
+    let squaredNumber = event.number * event.number
+    return Result(result: squaredNumber)
 }
 
 let runtime = try Runtime()

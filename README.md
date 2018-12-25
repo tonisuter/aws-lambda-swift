@@ -11,22 +11,42 @@ In the main.swift file of the `ExampleLambda` executable we import the AWSLambda
 ```swift
 import AWSLambdaSwift
 
-func squareNumber(input: JSONDictionary) -> JSONDictionary {
-    guard let number = input["number"] as? Double else {
-        return ["success": false]
-    }
+struct Event: Codable {
+    let number: Double
+}
 
-    let squaredNumber = number * number
-    return ["success": true, "result": squaredNumber]
+struct Result: Codable {
+    let result: Double
+}
+
+func squareNumber(event: Event, context: Context) -> Result {
+    let squaredNumber = event.number * event.number
+    return Result(result: squaredNumber)
 }
 
 let runtime = try Runtime()
-runtime.registerLambda("squareNumber", handler: squareNumber)
+runtime.registerLambda("squareNumber", handlerFunction: squareNumber)
 try runtime.start()
 ```
 
-At the moment, the handler functions need to have a single parameter of type `JSONDictionary` and they also need to
-return a `JSONDictionary`. This type is just a typealias for the type `Dictionary<String, Any>`.
+```swift
+import AWSLambdaSwift
+
+extension String: Error {}
+
+func squareNumber(event: JSONDictionary, context: Context) throws -> JSONDictionary {
+    guard let number = event["number"] as? Double else {
+        throw "invalid event data"
+    }
+
+    let squaredNumber = number * number
+    return ["result": squaredNumber]
+}
+
+let runtime = try Runtime()
+runtime.registerLambda("squareNumber", handlerFunction: squareNumber)
+try runtime.start()
+```
 
 ### Step 2: Build the lambda
 AWS Lambdas run on Amazon Linux (see [https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html)).

@@ -1,7 +1,7 @@
 import Foundation
 
 protocol Handler {
-    func apply(inputData: Data, context: Context) throws -> Data
+    func apply(eventData: Data, context: Context) throws -> Data
 }
 
 class JSONSerializationHandler: Handler {
@@ -11,40 +11,40 @@ class JSONSerializationHandler: Handler {
 		self.handlerFunction = handlerFunction
 	}
 	
-	func apply(inputData: Data, context: Context) throws -> Data {
-        guard let jsonObject = try? JSONSerialization.jsonObject(with: inputData),
-            let input = jsonObject as? JSONDictionary else {
+	func apply(eventData: Data, context: Context) throws -> Data {
+        guard let jsonObject = try? JSONSerialization.jsonObject(with: eventData),
+            let event = jsonObject as? JSONDictionary else {
             throw RuntimeError.invalidData
         }
 
-        let output = try handlerFunction(input, context)
+        let result = try handlerFunction(event, context)
 
-        guard let outputData = try? JSONSerialization.data(withJSONObject: output) else {
+        guard let resultData = try? JSONSerialization.data(withJSONObject: result) else {
             throw RuntimeError.invalidData
         }
-		return outputData
+		return resultData
 	}	
 }
 
-class CodableHandler<Input: Decodable, Output: Encodable>: Handler {
-	let handlerFunction: (Input, Context) throws -> Output
+class CodableHandler<Event: Decodable, Result: Encodable>: Handler {
+	let handlerFunction: (Event, Context) throws -> Result
 	
-	init(handlerFunction: @escaping (Input, Context) throws -> Output) {
+	init(handlerFunction: @escaping (Event, Context) throws -> Result) {
 		self.handlerFunction = handlerFunction
 	}
 	
-	func apply(inputData: Data, context: Context) throws -> Data {
+	func apply(eventData: Data, context: Context) throws -> Data {
 		let jsonDecoder = JSONDecoder()
-		guard let input = try? jsonDecoder.decode(Input.self, from: inputData) else {
+		guard let event = try? jsonDecoder.decode(Event.self, from: eventData) else {
             throw RuntimeError.invalidData
         }
 		
-        let output = try handlerFunction(input, context)
+        let result = try handlerFunction(event, context)
 
         let jsonEncoder = JSONEncoder()
-        guard let outputData = try? jsonEncoder.encode(output) else {
+        guard let resultData = try? jsonEncoder.encode(result) else {
             throw RuntimeError.invalidData
         }
-		return outputData
+		return resultData
 	}
 }
