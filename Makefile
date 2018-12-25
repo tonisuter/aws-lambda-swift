@@ -7,7 +7,7 @@ LAYER_ZIP=swift-lambda-runtime.zip
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
-	rm -r $(PROJECT_PATH)/.build_linux || true
+	rm -r $(PROJECT_PATH)/.build || true
 
 build_lambda:
 	docker run \
@@ -15,10 +15,10 @@ build_lambda:
 			--volume "$(shell pwd)/:/src" \
 			--workdir "/src/$(PROJECT_PATH)" \
 			swift \
-			swift build --build-path ./.build_linux
+			swift build
 
 package_lambda: clean_lambda build_lambda
-	zip -r -j $(LAMBDA_ZIP) $(PROJECT_PATH)/.build_linux/debug/$(EXECUTABLE)
+	zip -r -j $(LAMBDA_ZIP) $(PROJECT_PATH)/.build/debug/$(EXECUTABLE)
 
 deploy_lambda: package_lambda
 	aws lambda update-function-code --function-name SquareNumber --zip-file fileb://lambda.zip
