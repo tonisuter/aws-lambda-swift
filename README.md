@@ -29,6 +29,13 @@ runtime.registerLambda("squareNumber", handlerFunction: squareNumber)
 try runtime.start()
 ```
 
+The handler function takes two arguments: the `event` object which can be of any type that conforms to the
+`Decodable` protocol and the `context` object. It then processes the event and returns a result. The result
+can be of any type that conforms to the `Encodable` protocol.
+
+Alternatively, you can also define a handler function which takes and returns a `JSONDictionary`. This type is
+just a typealias for the type `Dictionary<String, Any>`:
+
 ```swift
 import AWSLambdaSwift
 
