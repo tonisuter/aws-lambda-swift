@@ -1,18 +1,38 @@
 import AWSLambdaSwift
+import Splash
 
-struct Event: Codable {
-    let number: Double
+enum Example1 {
+    struct Event: Codable {
+        let number: Double
+    }
+
+    struct Result: Codable {
+        let result: Double
+    }
+
+    static func squareNumber(event: Event, context: Context) -> Result {
+        let squaredNumber = event.number * event.number
+        return Result(result: squaredNumber)
+    }
 }
 
-struct Result: Codable {
-    let result: Double
-}
+enum Example2 {
+    struct Event: Codable {
+        let source: String
+    }
 
-func squareNumber(event: Event, context: Context) -> Result {
-    let squaredNumber = event.number * event.number
-    return Result(result: squaredNumber)
+    struct Result: Codable {
+        let html: String
+    }
+
+    static func highlight(event: Event, context: Context) -> Result {
+        let highlighter = SyntaxHighlighter(format: HTMLOutputFormat())
+        let html = highlighter.highlight(event.source)
+        return Result(html: html)
+    }
 }
 
 let runtime = try Runtime()
-runtime.registerLambda("squareNumber", handlerFunction: squareNumber)
+runtime.registerLambda("squareNumber", handlerFunction: Example1.squareNumber)
+runtime.registerLambda("highlight", handlerFunction: Example2.highlight)
 try runtime.start()

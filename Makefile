@@ -7,7 +7,7 @@ LAYER_ZIP=swift-lambda-runtime.zip
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
-	rm -r $(PROJECT_PATH)/.build || true
+	rm -rf $(PROJECT_PATH)/.build || true
 
 build_lambda:
 	docker run \
