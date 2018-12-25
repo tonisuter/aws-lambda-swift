@@ -5,9 +5,9 @@ protocol Handler {
 }
 
 class JSONSerializationHandler: Handler {
-	let handlerFunction: (JSONDictionary, Context) -> JSONDictionary
+	let handlerFunction: (JSONDictionary, Context) throws -> JSONDictionary
 	
-	init(handlerFunction: @escaping (JSONDictionary, Context) -> JSONDictionary) {
+	init(handlerFunction: @escaping (JSONDictionary, Context) throws -> JSONDictionary) {
 		self.handlerFunction = handlerFunction
 	}
 	
@@ -17,7 +17,7 @@ class JSONSerializationHandler: Handler {
             throw RuntimeError.invalidData
         }
 
-        let output = handlerFunction(input, context)
+        let output = try handlerFunction(input, context)
 
         guard let outputData = try? JSONSerialization.data(withJSONObject: output) else {
             throw RuntimeError.invalidData
@@ -27,9 +27,9 @@ class JSONSerializationHandler: Handler {
 }
 
 class CodableHandler<Input: Decodable, Output: Encodable>: Handler {
-	let handlerFunction: (Input, Context) -> Output
+	let handlerFunction: (Input, Context) throws -> Output
 	
-	init(handlerFunction: @escaping (Input, Context) -> Output) {
+	init(handlerFunction: @escaping (Input, Context) throws -> Output) {
 		self.handlerFunction = handlerFunction
 	}
 	
@@ -39,7 +39,7 @@ class CodableHandler<Input: Decodable, Output: Encodable>: Handler {
             throw RuntimeError.invalidData
         }
 		
-        let output = handlerFunction(input, context)
+        let output = try handlerFunction(input, context)
 
         let jsonEncoder = JSONEncoder()
         guard let outputData = try? jsonEncoder.encode(output) else {

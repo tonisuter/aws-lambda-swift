@@ -9,6 +9,10 @@ public func log(_ object: Any, flush: Bool = false) {
 
 public typealias JSONDictionary = [String: Any]
 
+struct InvocationError: Codable {
+    let errorMessage: String
+}
+
 public class Runtime {
     var counter = 0
     let urlSession: URLSession
@@ -60,6 +64,18 @@ public class Runtime {
         _ = urlSession.synchronousDataTask(with: urlRequest)
     }
 
+    func postInvocationError(for requestId: String, error: Error) {
+        let invocationError = InvocationError(errorMessage: String(describing: error))
+        let jsonEncoder = JSONEncoder()
+        let httpBody = try! jsonEncoder.encode(invocationError)
+
+        let postInvocationErrorEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/\(requestId)/error")!
+        var urlRequest = URLRequest(url: postInvocationErrorEndpoint)
+        urlRequest.httpMethod = "POST"
+        urlRequest.httpBody = httpBody
+        _ = urlSession.synchronousDataTask(with: urlRequest)
+    }
+
     func createContext(requestId: String, invokedFunctionArn: String) -> Context {
         let environment = ProcessInfo.processInfo.environment
         let functionName = environment["AWS_LAMBDA_FUNCTION_NAME"] ?? ""
@@ -74,12 +90,12 @@ public class Runtime {
                         invokedFunctionArn: invokedFunctionArn)
     }
 
-    public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) -> JSONDictionary) {
+    public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) throws -> JSONDictionary) {
         let handler = JSONSerializationHandler(handlerFunction: handlerFunction)
         handlers[name] = handler
     }
 
-    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) -> Output) {
+    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) throws -> Output) {
         let handler = CodableHandler(handlerFunction: handlerFunction)
         handlers[name] = handler
     }
@@ -95,8 +111,13 @@ public class Runtime {
             }
 
             let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
-            let outputData = try handler.apply(inputData: inputData, context: context)
-            postInvocationResponse(for: requestId, httpBody: outputData)
+
+            do {
+                let outputData = try handler.apply(inputData: inputData, context: context)
+                postInvocationResponse(for: requestId, httpBody: outputData)
+            } catch {
+                postInvocationError(for: requestId, error: error)
+            }
         }
     }
 }
