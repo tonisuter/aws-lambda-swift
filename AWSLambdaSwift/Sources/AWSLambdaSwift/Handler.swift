@@ -1,10 +1,10 @@
 import Foundation
 
-protocol HandlerProtocol {
+protocol Handler {
     func apply(inputData: Data, context: Context) throws -> Data
 }
 
-class JSONSerializationHandler: HandlerProtocol {
+class JSONSerializationHandler: Handler {
 	let handlerFunction: (JSONDictionary, Context) -> JSONDictionary
 	
 	init(handlerFunction: @escaping (JSONDictionary, Context) -> JSONDictionary) {
@@ -26,7 +26,7 @@ class JSONSerializationHandler: HandlerProtocol {
 	}	
 }
 
-class CodableHandler<Input: Decodable, Output: Encodable>: HandlerProtocol {
+class CodableHandler<Input: Decodable, Output: Encodable>: Handler {
 	let handlerFunction: (Input, Context) -> Output
 	
 	init(handlerFunction: @escaping (Input, Context) -> Output) {

@@ -13,12 +13,12 @@ public class Runtime {
     var counter = 0
     let urlSession: URLSession
     let awsLambdaRuntimeAPI: String
-    let lambdaName: String
-    var lambdas: [String: HandlerProtocol]
+    let handlerName: String
+    var handlers: [String: Handler]
     
     public init() throws {
         self.urlSession = URLSession.shared
-        self.lambdas = [:]
+        self.handlers = [:]
         
         let environment = ProcessInfo.processInfo.environment
         guard let awsLambdaRuntimeAPI = environment["AWS_LAMBDA_RUNTIME_API"],
@@ -31,7 +31,7 @@ public class Runtime {
         }
 
         self.awsLambdaRuntimeAPI = awsLambdaRuntimeAPI
-        self.lambdaName = String(handler[handler.index(after: periodIndex)...])
+        self.handlerName = String(handler[handler.index(after: periodIndex)...])
     }
     
     func getNextInvocation() throws -> (inputData: Data, requestId: String, invokedFunctionArn: String) {
@@ -76,12 +76,12 @@ public class Runtime {
 
     public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) -> JSONDictionary) {
         let handler = JSONSerializationHandler(handlerFunction: handlerFunction)
-        lambdas[name] = handler
+        handlers[name] = handler
     }
 
     public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) -> Output) {
         let handler = CodableHandler(handlerFunction: handlerFunction)
-        lambdas[name] = handler
+        handlers[name] = handler
     }
     
     public func start() throws {
@@ -90,12 +90,12 @@ public class Runtime {
             counter += 1
             log("Invocation-Counter: \(counter)")
 
-            guard let lambda = lambdas[lambdaName] else {
+            guard let handler = handlers[handlerName] else {
                 throw RuntimeError.unknownLambdaHandler
             }
 
             let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
-            let outputData = try lambda.apply(inputData: inputData, context: context)
+            let outputData = try handler.apply(inputData: inputData, context: context)
             postInvocationResponse(for: requestId, httpBody: outputData)
         }
     }
