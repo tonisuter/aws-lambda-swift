@@ -3,9 +3,9 @@
 The goal of this project is to implement a custom AWS Lambda Runtime for the Swift programming language.
 
 ### Step 1: Implement a lambda handler function
-`ExampleLambda` is an SPM package with a single, executable target that implements the lambda handler function.
+`Examples/SquareNumber` is an SPM package with a single, executable target that implements the lambda handler function.
 This package depends on the `AWSLambdaSwift` package which produces a library that contains the actual runtime.
-In the main.swift file of the `ExampleLambda` executable we import the AWSLambdaSwift library, instantiate the
+In the main.swift file of the `SquareNumber` executable we import the AWSLambdaSwift library, instantiate the
 `Runtime` class and then register our handler function. Finally, we start the runtime:
 
 ```swift
@@ -57,8 +57,8 @@ try runtime.start()
 
 ### Step 2: Build the lambda
 AWS Lambdas run on Amazon Linux (see [https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html](https://docs.aws.amazon.com/lambda/latest/dg/current-supported-versions.html)).
-This means that we can't just run `swift build` on macOS because that will produce a macOS executable which doesn't run on Linux. Instead, I have used Docker to build the `ExampleLambda` package.
-Execute the following command to build the `ExampleLambda` package and bundle the executable in the `lambda.zip` file:
+This means that we can't just run `swift build` on macOS because that will produce a macOS executable which doesn't run on Linux. Instead, I have used Docker to build the `SquareNumber` package.
+Execute the following command to build the `SquareNumber` package and bundle the executable in the `lambda.zip` file:
 
 ```bash
 make package_lambda
@@ -88,7 +88,7 @@ First create a new lambda function in the AWS Management console and select "Use
 
 ![Create a new lambda function](./resources/create-lambda-step-1.png)
 
-Next, select the `lambda.zip` file as the function package to upload and set the handler to "ExampleLambda.squareNumber". The first part of the handler should be the same as the name of the executable.
+Next, select the `lambda.zip` file as the function package to upload and set the handler to "SquareNumber.squareNumber". The first part of the handler should be the same as the name of the executable.
 The second part of the handler should be the same as the name that has been used to register the lambda handler in the runtime (see Step 1):
 
 ![Upload the function package and set the handler](./resources/create-lambda-step-2.png)
