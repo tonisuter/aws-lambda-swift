@@ -1,5 +1,7 @@
 .DS_Store
-.build_linux
+/.build
+/Packages
+/*.xcodeproj
 lambda.zip
 swift-shared-libs
 swift-lambda-runtime.zip

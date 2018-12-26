@@ -3,14 +3,14 @@
 import PackageDescription
 
 let package = Package(
-    name: "ExampleLambda",
+    name: "SyntaxHighlighter",
     dependencies: [
-        .package(path: "../AWSLambdaSwift"),
+        .package(path: "../../"),
         .package(url: "https://github.com/JohnSundell/Splash", from: "0.1.4")
     ],
     targets: [
         .target(
-            name: "ExampleLambda",
+            name: "SyntaxHighlighter",
             dependencies: ["AWSLambdaSwift", "Splash"]),
     ]
 )

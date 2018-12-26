@@ -1,30 +1,30 @@
-EXECUTABLE=ExampleLambda
-PROJECT_PATH=ExampleLambda
-LAMBDA_BUNDLE_NAME=lambda
-LAMBDA_ZIP=$(LAMBDA_BUNDLE_NAME).zip
+EXAMPLE_LAMBDA=SquareNumber
+EXAMPLE_EXECUTABLE=SquareNumber
+EXAMPLE_PROJECT_PATH=Examples/SquareNumber
+# EXAMPLE_LAMBDA=SyntaxHighlighter
+# EXAMPLE_EXECUTABLE=SyntaxHighlighter
+# EXAMPLE_PROJECT_PATH=Examples/SyntaxHighlighter
+LAMBDA_ZIP=lambda.zip
 SHARED_LIBS_FOLDER=swift-shared-libs
 LAYER_ZIP=swift-lambda-runtime.zip
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
-	rm -rf $(PROJECT_PATH)/.build || true
+	rm -rf $(EXAMPLE_PROJECT_PATH)/.build || true
 
 build_lambda:
 	docker run \
 			--rm \
 			--volume "$(shell pwd)/:/src" \
-			--workdir "/src/$(PROJECT_PATH)" \
+			--workdir "/src/$(EXAMPLE_PROJECT_PATH)" \
 			swift \
 			swift build
 
 package_lambda: clean_lambda build_lambda
-	zip -r -j $(LAMBDA_ZIP) $(PROJECT_PATH)/.build/debug/$(EXECUTABLE)
+	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/$(EXAMPLE_EXECUTABLE)
 
 deploy_lambda: package_lambda
-	aws lambda update-function-code --function-name SquareNumber --zip-file fileb://lambda.zip
-
-invoke_lambda:
-	aws lambda invoke --function-name SquareNumber --payload '{"number":9}' response.txt && cat response.txt && echo "" && (rm response.txt || true)
+	aws lambda update-function-code --function-name $(EXAMPLE_LAMBDA) --zip-file fileb://lambda.zip
 
 clean_layer:
 	rm $(LAYER_ZIP) || true
