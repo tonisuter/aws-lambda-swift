@@ -38,7 +38,7 @@ public class Runtime {
         self.handlerName = String(handler[handler.index(after: periodIndex)...])
     }
     
-    func getNextInvocation() throws -> (eventData: Data, requestId: String, invokedFunctionArn: String) {
+    func getNextInvocation() throws -> (eventData: Data, responseHeaderFields: [AnyHashable: Any]) {
         let getNextInvocationEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/next")!
         let (optData, optResponse, optError) = urlSession.synchronousDataTask(with: getNextInvocationEndpoint)
         
@@ -51,9 +51,7 @@ public class Runtime {
         }
         
         let httpResponse = optResponse as! HTTPURLResponse
-        let requestId = httpResponse.allHeaderFields["Lambda-Runtime-Aws-Request-Id"] as! String
-        let invokedFunctionArn = httpResponse.allHeaderFields["Lambda-Runtime-Invoked-Function-Arn"] as! String
-        return (eventData: eventData, requestId: requestId, invokedFunctionArn: invokedFunctionArn)
+        return (eventData: eventData, responseHeaderFields: httpResponse.allHeaderFields)
     }
     
     func postInvocationResponse(for requestId: String, httpBody: Data) {
@@ -77,20 +75,6 @@ public class Runtime {
         _ = urlSession.synchronousDataTask(with: urlRequest)
     }
 
-    func createContext(requestId: String, invokedFunctionArn: String) -> Context {
-        let environment = ProcessInfo.processInfo.environment
-        let functionName = environment["AWS_LAMBDA_FUNCTION_NAME"] ?? ""
-        let functionVersion = environment["AWS_LAMBDA_FUNCTION_VERSION"] ?? ""
-        let logGroupName = environment["AWS_LAMBDA_LOG_GROUP_NAME"] ?? ""
-        let logStreamName = environment["AWS_LAMBDA_LOG_STREAM_NAME"] ?? ""
-        return Context(functionName: functionName,
-                        functionVersion: functionVersion,
-                        logGroupName: logGroupName,
-                        logStreamName: logStreamName,
-                        awsRequestId: requestId,
-                        invokedFunctionArn: invokedFunctionArn)
-    }
-
     public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) throws -> JSONDictionary) {
         let handler = JSONSerializationHandler(handlerFunction: handlerFunction)
         handlers[name] = handler
@@ -103,7 +87,7 @@ public class Runtime {
     
     public func start() throws {
         while true {
-            let (eventData, requestId, invokedFunctionArn) = try getNextInvocation()
+            let (eventData, responseHeaderFields) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
@@ -111,13 +95,14 @@ public class Runtime {
                 throw RuntimeError.unknownLambdaHandler
             }
 
-            let context = createContext(requestId: requestId, invokedFunctionArn: invokedFunctionArn)
+            let environment = ProcessInfo.processInfo.environment
+            let context = Context(environment: environment, responseHeaderFields: responseHeaderFields)
 
             do {
                 let resultData = try handler.apply(eventData: eventData, context: context)
-                postInvocationResponse(for: requestId, httpBody: resultData)
+                postInvocationResponse(for: context.awsRequestId, httpBody: resultData)
             } catch {
-                postInvocationError(for: requestId, error: error)
+                postInvocationError(for: context.awsRequestId, error: error)
             }
         }
     }
