@@ -95,6 +95,10 @@ public class Runtime {
                 throw RuntimeError.unknownLambdaHandler
             }
 
+            if let lambdaRuntimeTraceId = responseHeaderFields["Lambda-Runtime-Trace-Id"] as? String {
+                setenv("_X_AMZN_TRACE_ID", lambdaRuntimeTraceId, 0)
+            }
+
             let environment = ProcessInfo.processInfo.environment
             let context = Context(environment: environment, responseHeaderFields: responseHeaderFields)
 
