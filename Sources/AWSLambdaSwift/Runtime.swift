@@ -76,13 +76,25 @@ public class Runtime {
     }
 
     public func registerLambda(_ name: String, handlerFunction: @escaping (JSONDictionary, Context) throws -> JSONDictionary) {
-        let handler = JSONSerializationHandler(handlerFunction: handlerFunction)
-        handlers[name] = handler
+        let handler = JSONSyncHandler(handlerFunction: handlerFunction)
+        handlers[name] = .sync(handler)
     }
 
-    public func registerLambda<Event: Decodable, Result: Encodable>(_ name: String, handlerFunction: @escaping (Event, Context) throws -> Result) {
-        let handler = CodableHandler(handlerFunction: handlerFunction)
-        handlers[name] = handler
+    public func registerLambda(_ name: String,
+                               handlerFunction: @escaping (JSONDictionary, Context, @escaping ((JSONDictionary) -> Void)) -> Void) {
+        let handler = JSONAsyncHandler(handlerFunction: handlerFunction)
+        handlers[name] = .async(handler)
+    }
+
+    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String, handlerFunction: @escaping (Input, Context) throws -> Output) {
+        let handler = CodableSyncHandler(handlerFunction: handlerFunction)
+        handlers[name] = .sync(handler)
+    }
+
+    public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String,
+                                                                    handlerFunction: @escaping (Input, Context, @escaping ((Output) -> Void)) -> Void) {
+        let handler = CodableAsyncHandler(handlerFunction: handlerFunction)
+        handlers[name] = .async(handler)
     }
     
     public func start() throws {
@@ -91,7 +103,7 @@ public class Runtime {
             counter += 1
             log("Invocation-Counter: \(counter)")
 
-            guard let handler = handlers[handlerName] else {
+            guard let handlerType = handlers[handlerName] else {
                 throw RuntimeError.unknownLambdaHandler
             }
 
@@ -102,11 +114,30 @@ public class Runtime {
             let environment = ProcessInfo.processInfo.environment
             let context = Context(environment: environment, responseHeaderFields: responseHeaderFields)
 
-            do {
-                let resultData = try handler.apply(eventData: eventData, context: context)
-                postInvocationResponse(for: context.awsRequestId, httpBody: resultData)
-            } catch {
-                postInvocationError(for: context.awsRequestId, error: error)
+            switch handlerType {
+            case .sync(let handler):
+                do {
+                    let outputData = try handler.apply(inputData: eventData, context: context)
+                    postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
+                } catch {
+                    postInvocationError(for: context.awsRequestId, error: error)
+                }
+            case .async(let handler):
+                let dispatchGroup = DispatchGroup()
+                dispatchGroup.enter()
+
+                handler.apply(inputData: eventData, context: context) { result in
+                    switch result {
+                    case .success(let outputData):
+                        self.postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
+                    case .failure(let error):
+                        self.postInvocationError(for: context.awsRequestId, error: error)
+                    }
+
+                    dispatchGroup.leave()
+                }
+
+                dispatchGroup.wait()
             }
         }
     }
