@@ -126,18 +126,20 @@ public class Runtime {
                 let dispatchGroup = DispatchGroup()
                 dispatchGroup.enter()
 
-                handler.apply(inputData: inputData, context: context) { handlerResult in
-                    switch handlerResult {
-                    case .success(let outputData):
-                        self.postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
-                    case .failure(let error):
-                        self.postInvocationError(for: context.awsRequestId, error: error)
-                    }
-
+                var handlerResult: HandlerResult?
+                handler.apply(inputData: inputData, context: context) { result in
+                    handlerResult = result
                     dispatchGroup.leave()
                 }
 
                 dispatchGroup.wait()
+
+                switch handlerResult! {
+                case .success(let outputData):
+                    postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
+                case .failure(let error):
+                    postInvocationError(for: context.awsRequestId, error: error)
+                }
             }
         }
     }
