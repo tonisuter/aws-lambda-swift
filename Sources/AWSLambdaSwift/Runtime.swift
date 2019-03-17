@@ -38,7 +38,7 @@ public class Runtime {
         self.handlerName = String(handler[handler.index(after: periodIndex)...])
     }
 
-    func getNextInvocation() throws -> (eventData: Data, responseHeaderFields: [AnyHashable: Any]) {
+    func getNextInvocation() throws -> (inputData: Data, responseHeaderFields: [AnyHashable: Any]) {
         let getNextInvocationEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/next")!
         let (optData, optResponse, optError) = urlSession.synchronousDataTask(with: getNextInvocationEndpoint)
 
@@ -46,12 +46,12 @@ public class Runtime {
             throw RuntimeError.endpointError(optError!.localizedDescription)
         }
 
-        guard let eventData = optData else {
+        guard let inputData = optData else {
             throw RuntimeError.missingData
         }
 
         let httpResponse = optResponse as! HTTPURLResponse
-        return (eventData: eventData, responseHeaderFields: httpResponse.allHeaderFields)
+        return (inputData: inputData, responseHeaderFields: httpResponse.allHeaderFields)
     }
 
     func postInvocationResponse(for requestId: String, httpBody: Data) {
@@ -92,14 +92,14 @@ public class Runtime {
     }
 
     public func registerLambda<Input: Decodable, Output: Encodable>(_ name: String,
-                                                                    handlerFunction: @escaping (Input, Context, @escaping ((Output) -> Void)) -> Void) {
+                                                                    handlerFunction: @escaping (Input, Context, @escaping (Output) -> Void) -> Void) {
         let handler = CodableAsyncHandler(handlerFunction: handlerFunction)
         handlers[name] = .async(handler)
     }
 
     public func start() throws {
         while true {
-            let (eventData, responseHeaderFields) = try getNextInvocation()
+            let (inputData, responseHeaderFields) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
@@ -117,7 +117,7 @@ public class Runtime {
             switch handlerType {
             case .sync(let handler):
                 do {
-                    let outputData = try handler.apply(inputData: eventData, context: context)
+                    let outputData = try handler.apply(inputData: inputData, context: context)
                     postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
                 } catch {
                     postInvocationError(for: context.awsRequestId, error: error)
@@ -126,8 +126,8 @@ public class Runtime {
                 let dispatchGroup = DispatchGroup()
                 dispatchGroup.enter()
 
-                handler.apply(inputData: eventData, context: context) { result in
-                    switch result {
+                handler.apply(inputData: inputData, context: context) { handlerResult in
+                    switch handlerResult {
                     case .success(let outputData):
                         self.postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
                     case .failure(let error):

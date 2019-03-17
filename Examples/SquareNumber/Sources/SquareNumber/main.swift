@@ -1,16 +1,16 @@
 import AWSLambdaSwift
 
-struct Event: Codable {
+struct Input: Codable {
     let number: Double
 }
 
-struct Result: Codable {
+struct Output: Codable {
     let result: Double
 }
 
-func squareNumber(event: Event, context: Context) -> Result {
-    let squaredNumber = event.number * event.number
-    return Result(result: squaredNumber)
+func squareNumber(input: Input, context: Context) -> Output {
+    let squaredNumber = input.number * input.number
+    return Output(result: squaredNumber)
 }
 
 let runtime = try Runtime()

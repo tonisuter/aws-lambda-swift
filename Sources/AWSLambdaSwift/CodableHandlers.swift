@@ -10,11 +10,11 @@ private func input<T: Decodable>(from inputData: Data) throws -> T {
 
 private func outputData<T: Encodable>(from output: T) throws -> Data {
     let jsonEncoder = JSONEncoder()
-    guard let resultData = try? jsonEncoder.encode(output) else {
+    guard let outputData = try? jsonEncoder.encode(output) else {
         throw RuntimeError.invalidData
     }
 
-    return resultData
+    return outputData
 }
 
 class CodableSyncHandler<Input: Decodable, Output: Encodable>: SyncHandler {
@@ -31,10 +31,10 @@ class CodableSyncHandler<Input: Decodable, Output: Encodable>: SyncHandler {
     }
 }
 
-class CodableAsyncHandler<Input: Decodable, Result: Encodable>: AsyncHandler {
-    let handlerFunction: (Input, Context, @escaping (Result) -> Void) -> Void
+class CodableAsyncHandler<Input: Decodable, Output: Encodable>: AsyncHandler {
+    let handlerFunction: (Input, Context, @escaping (Output) -> Void) -> Void
 
-    init(handlerFunction: @escaping (Input, Context, @escaping (Result) -> Void) -> Void) {
+    init(handlerFunction: @escaping (Input, Context, @escaping (Output) -> Void) -> Void) {
         self.handlerFunction = handlerFunction
     }
 

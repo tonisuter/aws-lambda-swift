@@ -11,17 +11,17 @@ In the main.swift file of the `SquareNumber` executable we import the AWSLambdaS
 ```swift
 import AWSLambdaSwift
 
-struct Event: Codable {
+struct Input: Codable {
     let number: Double
 }
 
-struct Result: Codable {
+struct Output: Codable {
     let result: Double
 }
 
-func squareNumber(event: Event, context: Context) -> Result {
-    let squaredNumber = event.number * event.number
-    return Result(result: squaredNumber)
+func squareNumber(input: Input, context: Context) -> Output {
+    let squaredNumber = input.number * input.number
+    return Output(result: squaredNumber)
 }
 
 let runtime = try Runtime()
@@ -29,8 +29,8 @@ runtime.registerLambda("squareNumber", handlerFunction: squareNumber)
 try runtime.start()
 ```
 
-The handler function takes two arguments: the `event` object which can be of any type that conforms to the
-`Decodable` protocol and the `context` object. It then processes the event and returns a result. The result
+The handler function takes two arguments: the `input` object which can be of any type that conforms to the
+`Decodable` protocol and the `context` object. It then processes the input and returns an output. The output
 can be of any type that conforms to the `Encodable` protocol.
 
 Alternatively, you can also define a handler function which takes and returns a `JSONDictionary`. This type is
@@ -41,9 +41,9 @@ import AWSLambdaSwift
 
 extension String: Error {}
 
-func squareNumber(event: JSONDictionary, context: Context) throws -> JSONDictionary {
-    guard let number = event["number"] as? Double else {
-        throw "invalid event data"
+func squareNumber(input: JSONDictionary, context: Context) throws -> JSONDictionary {
+    guard let number = input["number"] as? Double else {
+        throw "invalid input data"
     }
 
     let squaredNumber = number * number

@@ -1,18 +1,18 @@
 import AWSLambdaSwift
 import Splash
 
-struct Event: Codable {
+struct Input: Codable {
     let source: String
 }
 
-struct Result: Codable {
+struct Output: Codable {
     let html: String
 }
 
-func highlightSyntax(event: Event, context: Context) -> Result {
+func highlightSyntax(input: Input, context: Context) -> Output {
     let highlighter = SyntaxHighlighter(format: HTMLOutputFormat())
-    let html = highlighter.highlight(event.source)
-    return Result(html: html)
+    let html = highlighter.highlight(input.source)
+    return Output(html: html)
 }
 
 let runtime = try Runtime()

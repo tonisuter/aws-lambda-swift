@@ -2,17 +2,17 @@ import Foundation
 
 private func jsonObject(with data: Data) throws -> JSONDictionary {
     guard let jsonObject = try? JSONSerialization.jsonObject(with: data),
-        let event = jsonObject as? JSONDictionary else {
+        let jsonDictionary = jsonObject as? JSONDictionary else {
         throw RuntimeError.invalidData
     }
-    return event
+    return jsonDictionary
 }
 
 private func jsonSerializationData(with object: JSONDictionary) throws -> Data {
-    guard let resultData = try? JSONSerialization.data(withJSONObject: object) else {
+    guard let data = try? JSONSerialization.data(withJSONObject: object) else {
         throw RuntimeError.invalidData
     }
-    return resultData
+    return data
 }
 
 class JSONSyncHandler: SyncHandler {
@@ -23,9 +23,9 @@ class JSONSyncHandler: SyncHandler {
     }
 
     func apply(inputData: Data, context: Context) throws -> Data {
-        let event = try jsonObject(with: inputData)
-        let result = try handlerFunction(event, context)
-        return try jsonSerializationData(with: result)
+        let input = try jsonObject(with: inputData)
+        let output = try handlerFunction(input, context)
+        return try jsonSerializationData(with: output)
     }
 }
 
