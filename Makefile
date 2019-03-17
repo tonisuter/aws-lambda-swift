@@ -44,6 +44,7 @@ package_layer: clean_layer
 			--workdir "/src" \
 			swift \
 			cp -t $(SHARED_LIBS_FOLDER)/lib \
+					/lib/x86_64-linux-gnu/libnss_dns.so.2 \
 					/lib/x86_64-linux-gnu/libbsd.so.0 \
 					/lib/x86_64-linux-gnu/libc.so.6 \
 					/lib/x86_64-linux-gnu/libcom_err.so.2 \
