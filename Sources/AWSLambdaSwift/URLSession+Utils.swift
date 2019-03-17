@@ -11,18 +11,19 @@ extension URLSession {
         var response: URLResponse?
         var error: Error?
 
-        let semaphore = DispatchSemaphore(value: 0)
+        let dispatchGroup = DispatchGroup()
+        dispatchGroup.enter()
 
         let dataTask = self.dataTask(with: urlRequest) {
             data = $0
             response = $1
             error = $2
 
-            semaphore.signal()
+            dispatchGroup.leave()
         }
         dataTask.resume()
 
-        _ = semaphore.wait(timeout: .distantFuture)
+        dispatchGroup.wait()
         return (data, response, error)
     }
 }
