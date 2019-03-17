@@ -21,7 +21,7 @@ public class Runtime {
     var handlers: [String: Handler]
 
     public init() throws {
-        self.urlSession = URLSession.shared
+        self.urlSession = URLSession(configuration: .default)
         self.handlers = [:]
 
         let environment = ProcessInfo.processInfo.environment
