@@ -6,11 +6,12 @@ let package = Package(
     name: "SyntaxHighlighter",
     dependencies: [
         .package(path: "../../"),
-        .package(url: "https://github.com/JohnSundell/Splash", from: "0.1.4")
+        .package(url: "https://github.com/JohnSundell/Splash", from: "0.1.4"),
     ],
     targets: [
         .target(
             name: "SyntaxHighlighter",
-            dependencies: ["AWSLambdaSwift", "Splash"]),
+            dependencies: ["AWSLambdaSwift", "Splash"]
+        ),
     ]
 )

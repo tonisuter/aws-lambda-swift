@@ -10,6 +10,7 @@ let package = Package(
     targets: [
         .target(
             name: "SquareNumber",
-            dependencies: ["AWSLambdaSwift"]),
+            dependencies: ["AWSLambdaSwift"]
+        ),
     ]
 )

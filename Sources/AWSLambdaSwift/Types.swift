@@ -1,6 +1,6 @@
 import Foundation
 
-//Remove when moving to swift 5
+// Remove when moving to swift 5
 enum HandlerResult {
     case success(Data)
     case failure(Error)

@@ -3,7 +3,7 @@ import Foundation
 private func jsonObject(with data: Data) throws -> JSONDictionary {
     guard let jsonObject = try? JSONSerialization.jsonObject(with: data),
         let event = jsonObject as? JSONDictionary else {
-            throw RuntimeError.invalidData
+        throw RuntimeError.invalidData
     }
     return event
 }

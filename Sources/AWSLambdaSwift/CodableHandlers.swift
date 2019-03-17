@@ -18,11 +18,11 @@ private func outputData<T: Encodable>(from output: T) throws -> Data {
 }
 
 class CodableSyncHandler<Input: Decodable, Output: Encodable>: SyncHandler {
-	let handlerFunction: (Input, Context) throws -> Output
-	
-	init(handlerFunction: @escaping (Input, Context) throws -> Output) {
-		self.handlerFunction = handlerFunction
-	}
+    let handlerFunction: (Input, Context) throws -> Output
+
+    init(handlerFunction: @escaping (Input, Context) throws -> Output) {
+        self.handlerFunction = handlerFunction
+    }
 
     func apply(inputData: Data, context: Context) throws -> Data {
         let fInput = try input(from: inputData) as Input

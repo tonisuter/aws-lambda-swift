@@ -7,12 +7,14 @@ let package = Package(
     products: [
         .library(
             name: "AWSLambdaSwift",
-            targets: ["AWSLambdaSwift"]),
+            targets: ["AWSLambdaSwift"]
+        ),
     ],
     dependencies: [],
     targets: [
         .target(
             name: "AWSLambdaSwift",
-            dependencies: []),
+            dependencies: []
+        ),
     ]
 )
