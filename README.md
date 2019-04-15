@@ -1,5 +1,7 @@
 # aws-lambda-swift
 
+[![Swift 5](https://img.shields.io/badge/Swift-5.0-blue.svg)](https://swift.org/download/)
+
 The goal of this project is to implement a custom AWS Lambda Runtime for the Swift programming language.
 
 ### Step 1: Implement a lambda handler function
