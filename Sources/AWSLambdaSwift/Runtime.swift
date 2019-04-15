@@ -30,7 +30,7 @@ public class Runtime {
             throw RuntimeError.missingEnvironmentVariables
         }
 
-        guard let periodIndex = handler.index(of: ".") else {
+        guard let periodIndex = handler.firstIndex(of: ".") else {
             throw RuntimeError.invalidHandlerName
         }
 

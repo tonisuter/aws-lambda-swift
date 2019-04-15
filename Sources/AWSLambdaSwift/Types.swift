@@ -1,10 +1,6 @@
 import Foundation
 
-// Remove when moving to swift 5
-enum HandlerResult {
-    case success(Data)
-    case failure(Error)
-}
+typealias HandlerResult = Result<Data, Error>
 
 protocol SyncHandler {
     func apply(inputData: Data, context: Context) throws -> Data
