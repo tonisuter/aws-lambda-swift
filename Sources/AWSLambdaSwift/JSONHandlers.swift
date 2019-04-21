@@ -1,6 +1,6 @@
 import Foundation
 
-private func jsonObject(with data: Data) throws -> JSONDictionary {
+fileprivate func jsonObject(with data: Data) throws -> JSONDictionary {
     guard let jsonObject = try? JSONSerialization.jsonObject(with: data),
         let jsonDictionary = jsonObject as? JSONDictionary else {
         throw RuntimeError.invalidData
@@ -8,19 +8,15 @@ private func jsonObject(with data: Data) throws -> JSONDictionary {
     return jsonDictionary
 }
 
-private func jsonSerializationData(with object: JSONDictionary) throws -> Data {
+fileprivate func jsonSerializationData(with object: JSONDictionary) throws -> Data {
     guard let data = try? JSONSerialization.data(withJSONObject: object) else {
         throw RuntimeError.invalidData
     }
     return data
 }
 
-class JSONSyncHandler: SyncHandler {
+struct JSONSyncHandler: SyncHandler {
     let handlerFunction: (JSONDictionary, Context) throws -> JSONDictionary
-
-    init(handlerFunction: @escaping (JSONDictionary, Context) throws -> JSONDictionary) {
-        self.handlerFunction = handlerFunction
-    }
 
     func apply(inputData: Data, context: Context) throws -> Data {
         let input = try jsonObject(with: inputData)
@@ -29,12 +25,8 @@ class JSONSyncHandler: SyncHandler {
     }
 }
 
-class JSONAsyncHandler: AsyncHandler {
+struct JSONAsyncHandler: AsyncHandler {
     let handlerFunction: (JSONDictionary, Context, @escaping (JSONDictionary) -> Void) -> Void
-
-    init(handlerFunction: @escaping (JSONDictionary, Context, @escaping (JSONDictionary) -> Void) -> Void) {
-        self.handlerFunction = handlerFunction
-    }
 
     func apply(inputData: Data, context: Context, completion: @escaping (HandlerResult) -> Void) {
         do {

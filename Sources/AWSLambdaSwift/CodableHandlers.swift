@@ -1,6 +1,6 @@
 import Foundation
 
-private func input<T: Decodable>(from inputData: Data) throws -> T {
+fileprivate func decodeInput<T: Decodable>(from inputData: Data) throws -> T {
     let jsonDecoder = JSONDecoder()
     guard let input = try? jsonDecoder.decode(T.self, from: inputData) else {
         throw RuntimeError.invalidData
@@ -8,43 +8,34 @@ private func input<T: Decodable>(from inputData: Data) throws -> T {
     return input
 }
 
-private func outputData<T: Encodable>(from output: T) throws -> Data {
+fileprivate func encodeOutput<T: Encodable>(_ output: T) throws -> Data {
     let jsonEncoder = JSONEncoder()
     guard let outputData = try? jsonEncoder.encode(output) else {
         throw RuntimeError.invalidData
     }
-
     return outputData
 }
 
-class CodableSyncHandler<Input: Decodable, Output: Encodable>: SyncHandler {
+struct CodableSyncHandler<Input: Decodable, Output: Encodable>: SyncHandler {
     let handlerFunction: (Input, Context) throws -> Output
 
-    init(handlerFunction: @escaping (Input, Context) throws -> Output) {
-        self.handlerFunction = handlerFunction
-    }
-
     func apply(inputData: Data, context: Context) throws -> Data {
-        let fInput = try input(from: inputData) as Input
-        let output = try handlerFunction(fInput, context)
-        return try outputData(from: output)
+        let input = try decodeInput(from: inputData) as Input
+        let output = try handlerFunction(input, context)
+        return try encodeOutput(output)
     }
 }
 
-class CodableAsyncHandler<Input: Decodable, Output: Encodable>: AsyncHandler {
+struct CodableAsyncHandler<Input: Decodable, Output: Encodable>: AsyncHandler {
     let handlerFunction: (Input, Context, @escaping (Output) -> Void) -> Void
-
-    init(handlerFunction: @escaping (Input, Context, @escaping (Output) -> Void) -> Void) {
-        self.handlerFunction = handlerFunction
-    }
 
     func apply(inputData: Data, context: Context, completion: @escaping (HandlerResult) -> Void) {
         do {
-            let fInput = try input(from: inputData) as Input
-            handlerFunction(fInput, context) { output in
+            let input = try decodeInput(from: inputData) as Input
+            handlerFunction(input, context) { output in
                 do {
-                    let fOutputData = try outputData(from: output)
-                    completion(.success(fOutputData))
+                    let outputData = try encodeOutput(output)
+                    completion(.success(outputData))
                 } catch {
                     completion(.failure(error))
                 }
