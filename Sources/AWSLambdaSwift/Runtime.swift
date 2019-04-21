@@ -14,7 +14,6 @@ struct InvocationError: Codable {
 }
 
 public class Runtime {
-    var counter = 0
     let urlSession: URLSession
     let awsLambdaRuntimeAPI: String
     let handlerName: String
@@ -81,7 +80,7 @@ public class Runtime {
     }
 
     public func registerLambda(_ name: String,
-                               handlerFunction: @escaping (JSONDictionary, Context, @escaping ((JSONDictionary) -> Void)) -> Void) {
+                               handlerFunction: @escaping (JSONDictionary, Context, @escaping (JSONDictionary) -> Void) -> Void) {
         let handler = JSONAsyncHandler(handlerFunction: handlerFunction)
         handlers[name] = .async(handler)
     }
@@ -98,12 +97,14 @@ public class Runtime {
     }
 
     public func start() throws {
+        var counter = 0
+
         while true {
             let (inputData, responseHeaderFields) = try getNextInvocation()
             counter += 1
             log("Invocation-Counter: \(counter)")
 
-            guard let handlerType = handlers[handlerName] else {
+            guard let handler = handlers[handlerName] else {
                 throw RuntimeError.unknownLambdaHandler
             }
 
@@ -113,33 +114,13 @@ public class Runtime {
 
             let environment = ProcessInfo.processInfo.environment
             let context = Context(environment: environment, responseHeaderFields: responseHeaderFields)
+            let result = handler.apply(inputData: inputData, context: context)
 
-            switch handlerType {
-            case .sync(let handler):
-                do {
-                    let outputData = try handler.apply(inputData: inputData, context: context)
-                    postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
-                } catch {
-                    postInvocationError(for: context.awsRequestId, error: error)
-                }
-            case .async(let handler):
-                let dispatchGroup = DispatchGroup()
-                dispatchGroup.enter()
-
-                var handlerResult: HandlerResult?
-                handler.apply(inputData: inputData, context: context) { result in
-                    handlerResult = result
-                    dispatchGroup.leave()
-                }
-
-                dispatchGroup.wait()
-
-                switch handlerResult! {
-                case .success(let outputData):
-                    postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
-                case .failure(let error):
-                    postInvocationError(for: context.awsRequestId, error: error)
-                }
+            switch result {
+            case .success(let outputData):
+                postInvocationResponse(for: context.awsRequestId, httpBody: outputData)
+            case .failure(let error):
+                postInvocationError(for: context.awsRequestId, error: error)
             }
         }
     }
