@@ -11,6 +11,7 @@ public typealias JSONDictionary = [String: Any]
 
 struct InvocationError: Codable {
     let errorMessage: String
+    let errorType: String
 }
 
 public class Runtime {
@@ -62,8 +63,9 @@ public class Runtime {
     }
 
     func postInvocationError(for requestId: String, error: Error) {
-        let errorMessage = String(describing: error)
-        let invocationError = InvocationError(errorMessage: errorMessage)
+        let errorMessage = error.localizedDescription
+        let invocationError = InvocationError(errorMessage: errorMessage,
+                                              errorType: "PostInvocationError")
         let jsonEncoder = JSONEncoder()
         let httpBody = try? jsonEncoder.encode(invocationError)
 
