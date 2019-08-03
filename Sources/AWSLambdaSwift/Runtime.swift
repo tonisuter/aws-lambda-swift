@@ -65,7 +65,7 @@ public class Runtime {
         let errorMessage = String(describing: error)
         let invocationError = InvocationError(errorMessage: errorMessage)
         let jsonEncoder = JSONEncoder()
-        let httpBody = try! jsonEncoder.encode(invocationError)
+        let httpBody = try? jsonEncoder.encode(invocationError)
 
         let postInvocationErrorEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/\(requestId)/error")!
         var urlRequest = URLRequest(url: postInvocationErrorEndpoint)
