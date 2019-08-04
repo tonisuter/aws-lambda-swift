@@ -21,7 +21,12 @@ public class Runtime {
     var handlers: [String: Handler]
 
     public init() throws {
-        self.urlSession = URLSession(configuration: .default)
+        
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 3600
+
+        
+        self.urlSession = URLSession(configuration: configuration)
         self.handlers = [:]
 
         let environment = ProcessInfo.processInfo.environment
