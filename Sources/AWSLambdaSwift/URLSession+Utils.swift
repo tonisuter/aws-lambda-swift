@@ -1,4 +1,7 @@
 import Foundation
+#if swift(>=5.1) && os(Linux)
+  import FoundationNetworking
+#endif
 
 extension URLSession {
     func synchronousDataTask(with url: URL) -> (Data?, URLResponse?, Error?) {
