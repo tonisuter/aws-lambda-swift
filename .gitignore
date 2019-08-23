@@ -2,6 +2,7 @@
 /.build
 /Packages
 /*.xcodeproj
+/.swiftpm
 lambda.zip
 swift-shared-libs
 swift-lambda-runtime.zip
