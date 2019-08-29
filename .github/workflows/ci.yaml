@@ -1,10 +1,13 @@
-# Trigger on push
+name: CI
 on: [push, pull_request]
 
 jobs:
   test:
-    runs-on: macOS-10.14
-    name: "Test layer"
+    runs-on: ubuntu-18.04
     steps:
-      - name: Create layer and run single example lambda
-      - run: make test_layer
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Build & test layer
+      run: make test_layer
