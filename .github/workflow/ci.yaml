@@ -1,0 +1,9 @@
+# Trigger on push
+on: push
+
+jobs:
+  test:
+    name: "Test layer"
+    steps:
+      - name: Create layer and run single example lambda
+      - run: make test_layer

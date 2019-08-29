@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  sam-app
+
+  Sample SAM Template for sam-app
+  
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 3
+
+Resources:
+
+  SwiftLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: swift-lambda-runtime/
+      # ContentUri:
+      #   Bucket: de.fabianfett.denkan.app.sam
+      #   Key: swift-lambda-runtime.zip
+
+  SquareNumberFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: lambda.zip
+      Handler: "SquareNumber.squareNumber"
+      Runtime: provided
+      Layers:
+        - !Ref SwiftLayer
+      Events:
+        HelloWorld:
+          Type: Api
+          Properties:
+            Path: /hello
+            Method: get
+  
