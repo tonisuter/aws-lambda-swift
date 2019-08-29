@@ -37,7 +37,7 @@ build_lambda:
 			--volume "$(shell pwd)/:/src" \
 			--workdir "/src/$(EXAMPLE_PROJECT_PATH)" \
 			$(SWIFT_DOCKER_IMAGE) \
-			swift build && ln -n .
+			swift build && ls -n .
 
 package_lambda: clean_lambda build_lambda
 	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/x86_64-unknown-linux/$(EXAMPLE_EXECUTABLE)
