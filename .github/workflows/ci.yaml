@@ -9,5 +9,9 @@ jobs:
       uses: actions/checkout@v1
       with:
         fetch-depth: 1
-    - name: Build & test layer
-      run: make test_layer
+    - name: Build local layer
+      run: make create_layer
+    - name: Build local and package local lambda
+      run: make package_lambda
+    - name: Run show local files
+      run: ls -n ./examples/SquareNumber/
