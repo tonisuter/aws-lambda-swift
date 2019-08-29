@@ -1,6 +1,7 @@
 EXAMPLE_LAMBDA=SquareNumber
 EXAMPLE_EXECUTABLE=SquareNumber
 EXAMPLE_PROJECT_PATH=Examples/SquareNumber
+
 # EXAMPLE_LAMBDA=SyntaxHighlighter
 # EXAMPLE_EXECUTABLE=SyntaxHighlighter
 # EXAMPLE_PROJECT_PATH=Examples/SyntaxHighlighter
@@ -12,6 +13,19 @@ LAYER_FOLDER=swift-lambda-runtime
 LAYER_ZIP=swift-lambda-runtime.zip
 SHARED_LIBS_FOLDER=$(LAYER_FOLDER)/swift-shared-libs
 SWIFT_DOCKER_IMAGE=swift:5.0
+
+# System specific configuration
+
+UNAME_S := $(shell uname -s)
+
+
+ifeq ($(UNAME_S),Darwin)
+	EXAMPLE_EXECUTABLE_PATH=$(EXAMPLE_PROJECT_PATH)/.build/debug/$(EXAMPLE_EXECUTABLE)
+else
+	EXAMPLE_EXECUTABLE_PATH=$(EXAMPLE_PROJECT_PATH)/.build/x86_64-unknown-linux/debug/$(EXAMPLE_EXECUTABLE)
+endif
+
+
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
@@ -26,7 +40,7 @@ build_lambda:
 			swift build
 
 package_lambda: clean_lambda build_lambda
-	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/$(EXAMPLE_EXECUTABLE)
+	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/x86_64-unknown-linux/$(EXAMPLE_EXECUTABLE)
 
 deploy_lambda: package_lambda
 	aws lambda update-function-code --function-name $(EXAMPLE_LAMBDA) --zip-file fileb://lambda.zip
@@ -114,7 +128,7 @@ create_layer: clean_layer
 					/usr/lib/x86_64-linux-gnu/libwind.so.0 \
 					/usr/lib/x86_64-linux-gnu/libxml2.so.2
 
-test_layer: create_layer package_lambda
+test_layer: package_lambda
 	echo '{"number": 9 }' | sam local invoke --force-image-build -v . "SquareNumberFunction"
 
 package_layer: create_layer
