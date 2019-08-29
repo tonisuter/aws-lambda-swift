@@ -6,5 +6,9 @@ jobs:
     runs-on: ubuntu-18.04
     name: "Test layer"
     steps:
-      - name: "Create layer and run single example lambda"
-        run: make test_layer
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Build & test layer
+      run: make test_layer
