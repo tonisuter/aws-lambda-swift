@@ -16,4 +16,4 @@ jobs:
     - name: Run show local files
       run: ls -n ./Examples/SquareNumber/
     - name: Run show local files
-      run: ls -n ./Examples/SquareNumber/.build
+      run: ls -n .
