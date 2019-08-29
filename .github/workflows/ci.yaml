@@ -14,6 +14,6 @@ jobs:
     - name: Build local and package local lambda
       run: make build_lambda
     - name: Run show local files
-      run: ls -n ./Examples/SquareNumber/
-    - name: Run show local files
-      run: ls -n .
+      run: ls -an ./Examples/SquareNumber/
+    - name: Package local lambda
+      run: make package_lambda

@@ -18,15 +18,6 @@ SWIFT_DOCKER_IMAGE=swift:5.0
 
 UNAME_S := $(shell uname -s)
 
-
-ifeq ($(UNAME_S),Darwin)
-	EXAMPLE_EXECUTABLE_PATH=$(EXAMPLE_PROJECT_PATH)/.build/debug/$(EXAMPLE_EXECUTABLE)
-else
-	EXAMPLE_EXECUTABLE_PATH=$(EXAMPLE_PROJECT_PATH)/.build/x86_64-unknown-linux/debug/$(EXAMPLE_EXECUTABLE)
-endif
-
-
-
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
 	rm -rf $(EXAMPLE_PROJECT_PATH)/.build || true
@@ -37,10 +28,10 @@ build_lambda:
 			--volume "$(shell pwd)/:/src" \
 			--workdir "/src/$(EXAMPLE_PROJECT_PATH)" \
 			$(SWIFT_DOCKER_IMAGE) \
-			swift build && ls -n .
+			swift build
 
 package_lambda: clean_lambda build_lambda
-	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/x86_64-unknown-linux/$(EXAMPLE_EXECUTABLE)
+	zip -r -j $(LAMBDA_ZIP) $(EXAMPLE_PROJECT_PATH)/.build/debug/$(EXAMPLE_EXECUTABLE)
 
 deploy_lambda: package_lambda
 	aws lambda update-function-code --function-name $(EXAMPLE_LAMBDA) --zip-file fileb://lambda.zip
