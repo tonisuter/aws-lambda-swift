@@ -1,10 +1,9 @@
 # Trigger on push
-on: 
-- push
-- pull_request
+on: [push, pull_request]
 
 jobs:
   test:
+    runs-on: macOS-10.14
     name: "Test layer"
     steps:
       - name: Create layer and run single example lambda
