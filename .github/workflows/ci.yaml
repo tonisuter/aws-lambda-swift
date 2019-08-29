@@ -12,6 +12,8 @@ jobs:
     - name: Build local layer
       run: make create_layer
     - name: Build local and package local lambda
-      run: make package_lambda
+      run: make build_lambda
     - name: Run show local files
-      run: ls -n ./examples/SquareNumber/
+      run: ls -n ./Examples/SquareNumber/
+    - name: Run show local files
+      run: ls -n ./Examples/SquareNumber/.build
