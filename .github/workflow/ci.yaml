@@ -1,13 +1,30 @@
 name: CI
 on: [push, pull_request]
-
 jobs:
-  test:
+  build:
+
     runs-on: ubuntu-18.04
+
     steps:
-    - name: Checkout
-      uses: actions/checkout@v1
-      with:
-        fetch-depth: 1
-    - name: Build & test layer
-      run: make test_layer
+    - uses: actions/checkout@v1
+    - name: Run a one-line script
+      run: echo Hello, world!
+    - name: Run a multi-line script
+      run: |
+        echo Add other actions to build,
+        echo test, and deploy your project.
+
+
+# name: CI
+# on: [push, pull_request]
+
+# jobs:
+#   test:
+#     runs-on: ubuntu-18.04
+#     steps:
+#     - name: Checkout
+#       uses: actions/checkout@v1
+#       with:
+#         fetch-depth: 1
+#     - name: Build & test layer
+#       run: make test_layer
