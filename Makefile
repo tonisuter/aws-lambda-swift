@@ -10,7 +10,7 @@ EXAMPLE_PROJECT_PATH=Examples/SquareNumber
 LAMBDA_ZIP=lambda.zip
 SHARED_LIBS_FOLDER=swift-shared-libs
 LAYER_ZIP=swift-lambda-runtime.zip
-SWIFT_DOCKER_IMAGE=swift:5.0
+SWIFT_DOCKER_IMAGE=swift:5.1
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
@@ -64,6 +64,7 @@ package_layer: clean_layer
 					/lib/x86_64-linux-gnu/libz.so.1 \
 					/usr/lib/swift/linux/libBlocksRuntime.so \
 					/usr/lib/swift/linux/libFoundation.so \
+					/usr/lib/swift/linux/libFoundationNetworking.so \
 					/usr/lib/swift/linux/libdispatch.so \
 					/usr/lib/swift/linux/libicudataswift.so.61 \
 					/usr/lib/swift/linux/libicui18nswift.so.61 \
