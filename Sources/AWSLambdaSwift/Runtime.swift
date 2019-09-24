@@ -1,6 +1,6 @@
 import Foundation
-#if swift(>=5.1) && os(Linux)
-  import FoundationNetworking
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
 #endif
 
 public func log(_ object: Any, flush: Bool = false) {
