@@ -14,6 +14,7 @@ public typealias JSONDictionary = [String: Any]
 
 struct InvocationError: Codable {
     let errorMessage: String
+    let errorType: String
 }
 
 public class Runtime {
@@ -23,7 +24,12 @@ public class Runtime {
     var handlers: [String: Handler]
 
     public init() throws {
-        self.urlSession = URLSession(configuration: .default)
+        
+        let configuration = URLSessionConfiguration.default
+        configuration.timeoutIntervalForRequest = 3600
+
+        
+        self.urlSession = URLSession(configuration: configuration)
         self.handlers = [:]
 
         let environment = ProcessInfo.processInfo.environment
@@ -65,10 +71,11 @@ public class Runtime {
     }
 
     func postInvocationError(for requestId: String, error: Error) {
-        let errorMessage = String(describing: error)
-        let invocationError = InvocationError(errorMessage: errorMessage)
+        let errorMessage = error.localizedDescription
+        let invocationError = InvocationError(errorMessage: errorMessage,
+                                              errorType: "PostInvocationError")
         let jsonEncoder = JSONEncoder()
-        let httpBody = try! jsonEncoder.encode(invocationError)
+        let httpBody = try? jsonEncoder.encode(invocationError)
 
         let postInvocationErrorEndpoint = URL(string: "http://\(awsLambdaRuntimeAPI)/2018-06-01/runtime/invocation/\(requestId)/error")!
         var urlRequest = URLRequest(url: postInvocationErrorEndpoint)
