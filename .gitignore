@@ -4,5 +4,5 @@
 /*.xcodeproj
 /.swiftpm
 lambda.zip
-swift-shared-libs
+swift-lambda-runtime
 swift-lambda-runtime.zip
