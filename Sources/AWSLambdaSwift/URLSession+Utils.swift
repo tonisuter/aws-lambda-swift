@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 
 extension URLSession {
     func synchronousDataTask(with url: URL) -> (Data?, URLResponse?, Error?) {
