@@ -1,0 +1,39 @@
+name: CI
+on: 
+  push:
+    branches: 
+    - master
+  pull_request:
+    branches: 
+    - master
+
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v1
+      with:
+        fetch-depth: 1
+    - name: Install ruby
+      uses: actions/setup-ruby@v1
+    - name: Install aws-sam-cli
+      run: sudo pip install aws-sam-cli
+    # - name: Install aws sam cli
+    #   run: |
+    #     sudo sh -c "$(curl -fsSL https://raw.githubusercontent.com/Linuxbrew/install/master/install.sh)"
+    #     brew --version
+    #     sudo brew tap aws/tap
+    #     brew install aws-sam-cli
+    #     sam --version
+    - name: Build local layer
+      run: make create_layer
+    # - name: Build local and package local lambda
+    #   run: make build_lambda
+    # - name: Run show local files
+    #   run: ls -an ./Examples/SquareNumber/
+    # - name: Package local lambda
+    #   run: make package_lambda
+    - name: test local lambda
+      run: make test_layer
+      

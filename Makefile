@@ -1,6 +1,7 @@
 EXAMPLE_LAMBDA=SquareNumber
 EXAMPLE_EXECUTABLE=SquareNumber
 EXAMPLE_PROJECT_PATH=Examples/SquareNumber
+
 # EXAMPLE_LAMBDA=SyntaxHighlighter
 # EXAMPLE_EXECUTABLE=SyntaxHighlighter
 # EXAMPLE_PROJECT_PATH=Examples/SyntaxHighlighter
@@ -8,9 +9,14 @@ EXAMPLE_PROJECT_PATH=Examples/SquareNumber
 # EXAMPLE_EXECUTABLE=RESTCountries
 # EXAMPLE_PROJECT_PATH=Examples/RESTCountries
 LAMBDA_ZIP=lambda.zip
-SHARED_LIBS_FOLDER=swift-shared-libs
+LAYER_FOLDER=swift-lambda-runtime
 LAYER_ZIP=swift-lambda-runtime.zip
-SWIFT_DOCKER_IMAGE=swift:5.1
+SHARED_LIBS_FOLDER=$(LAYER_FOLDER)/swift-shared-libs
+SWIFT_DOCKER_IMAGE=swift:5.1.1
+
+# System specific configuration
+
+UNAME_S := $(shell uname -s)
 
 clean_lambda:
 	rm $(LAMBDA_ZIP) || true
@@ -34,8 +40,11 @@ clean_layer:
 	rm $(LAYER_ZIP) || true
 	rm -r $(SHARED_LIBS_FOLDER) || true
 
-package_layer: clean_layer
+create_layer: clean_layer
+	mkdir -p $(LAYER_FOLDER)
 	mkdir -p $(SHARED_LIBS_FOLDER)/lib
+	cp ./bootstrap "$(LAYER_FOLDER)/bootstrap"
+	chmod 755 "$(LAYER_FOLDER)/bootstrap"
 	docker run \
 			--rm \
 			--volume "$(shell pwd)/:/src" \
@@ -104,5 +113,11 @@ package_layer: clean_layer
 					/usr/lib/x86_64-linux-gnu/libstdc++.so.6 \
 					/usr/lib/x86_64-linux-gnu/libtasn1.so.6 \
 					/usr/lib/x86_64-linux-gnu/libunistring.so.2 \
-					/usr/lib/x86_64-linux-gnu/libwind.so.0
+					/usr/lib/x86_64-linux-gnu/libwind.so.0 \
+					/usr/lib/x86_64-linux-gnu/libxml2.so.2
+
+test_layer: package_lambda
+	echo '{"number": 9 }' | sam local invoke --force-image-build -v . "SquareNumberFunction"
+
+package_layer: create_layer
 	zip -r $(LAYER_ZIP) bootstrap $(SHARED_LIBS_FOLDER)
