@@ -1,5 +1,8 @@
 import AWSLambdaSwift
 import Foundation
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 
 struct Input: Codable {
     let countryCode: String

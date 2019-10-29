@@ -1,4 +1,7 @@
 import Foundation
+#if canImport(FoundationNetworking)
+    import FoundationNetworking
+#endif
 
 public func log(_ object: Any, flush: Bool = false) {
     fputs("\(object)\n", stderr)
